@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Tạo Trắc Nghiệm Thông Minh (AI Powered)</title>
+    <link rel="stylesheet" href="quiz-style.css">
+    <!-- Thư viện PDF.js để đọc file PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <!-- Thư viện jsPDF để xuất file PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- Thư viện html2canvas để hỗ trợ render HTML sang Canvas (cho PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Font Awesome cho icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1><i class="fas fa-brain"></i> Hệ Thống Tạo Trắc Nghiệm AI</h1>
+            </div>
+            <p>Tạo bộ câu hỏi chuẩn Bloom, kiểm tra độ nhiễu và phân tích IRT</p>
+        </header>
+
+        <!-- Phần 1: Nhập dữ liệu -->
+        <div class="card input-section">
+            <h2>1. Cấu hình & Dữ liệu đầu vào</h2>
+            
+            <div class="form-group">
+                <label class="section-label">1.1 Nội dung nguồn (Bắt buộc)</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="file-upload" accept=".txt, .pdf">
+                    <label for="file-upload" class="file-label">
+                        <i class="fas fa-cloud-upload-alt"></i> <span id="file-name">Chọn file tài liệu (TXT/PDF)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="section-label">1.2 Độ khó (Thang Bloom)</label>
+                <div class="slider-container">
+                    <input type="range" id="difficulty" min="0" max="2" step="1" value="1">
+                    <div class="slider-labels">
+                        <span>Dễ</span>
+                        <span>Vừa</span>
+                        <span>Khó</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2-col">
+                <div class="form-group">
+                    <label class="section-label">1.3 Số lượng câu hỏi</label>
+                    <input type="number" id="question-count" value="10" min="1" max="50">
+                </div>
+
+                <div class="form-group">
+                    <label class="section-label">1.4 Ngôn ngữ đầu ra</label>
+                    <select id="output-language" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                        <option value="vi">Tiếng Việt</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid-2-col checkbox-group">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="enable-explanation" checked>
+                    <span class="checkmark"></span>
+                    Tạo giải thích chi tiết
+                </label>
+
+                <label class="checkbox-container">
+                    <input type="checkbox" id="enable-improvement">
+                    <span class="checkmark"></span>
+                    Bật Chế độ Cải thiện (Advanced)
+                </label>
+            </div>
+
+            <!-- Phần 1.1: Chế độ cải thiện (Hiện khi tick checkbox) -->
+            <div id="improvement-options" class="hidden advanced-panel">
+                <h3><i class="fas fa-chart-line"></i> Cấu hình Chế độ Cải thiện</h3>
+                
+                <div class="form-group">
+                    <label>1. File Ma trận kết quả (0/1) - CSV/Excel</label>
+                    <div class="file-input-wrapper small">
+                        <input type="file" id="matrix-upload" accept=".csv, .xlsx, .xls">
+                        <label for="matrix-upload" class="file-label">
+                            <i class="fas fa-table"></i> <span id="matrix-name">Chọn file ma trận điểm</span>
+                        </label>
+                    </div>
+                    <small class="hint">* Định dạng: Cột=Câu hỏi, Hàng=Học sinh, Giá trị=1(Đúng)/0(Sai)</small>
+                </div>
+
+                <div class="form-group">
+                    <label>2. File Bảng lựa chọn (A/B/C/D) - CSV/Excel</label>
+                    <div class="file-input-wrapper small">
+                        <input type="file" id="choices-upload" accept=".csv, .xlsx, .xls">
+                        <label for="choices-upload" class="file-label">
+                            <i class="fas fa-list"></i> <span id="choices-name">Chọn file bảng lựa chọn</span>
+                        </label>
+                    </div>
+                    <small class="hint">* Định dạng: Cột=Câu hỏi, Hàng=Học sinh, Giá trị=Đáp án đã chọn</small>
+                </div>
+
+                <div class="form-group">
+                    <label>3. File Ngân hàng câu hỏi gốc</label>
+                    <div class="file-input-wrapper small">
+                        <input type="file" id="bank-upload" accept=".txt, .json">
+                        <label for="bank-upload" class="file-label">
+                            <i class="fas fa-database"></i> <span id="bank-name">Chọn file câu hỏi gốc</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid-2-col checkbox-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="inc-difficulty">
+                        <span class="checkmark"></span>
+                        Tăng độ khó
+                    </label>
+
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="inc-discrimination">
+                        <span class="checkmark"></span>
+                        Tăng độ phân loại
+                    </label>
+                </div>
+            </div>
+
+            <button id="generate-btn" disabled>
+                <i class="fas fa-magic"></i> BẮT ĐẦU TẠO CÂU HỎI
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p id="loading-text">Đang khởi động AI...</p>
+            <div class="progress-steps">
+                <div class="step" id="step-1">1. Đọc & Mở rộng kiến thức</div>
+                <div class="step" id="step-2">2. Tạo câu hỏi (Bloom)</div>
+                <div class="step" id="step-3">3. Kiểm tra độ nhiễu</div>
+                <div class="step" id="step-4">4. Kiểm tra ảo giác (GPT-5)</div>
+                <div class="step" id="step-5">5. Thẩm định (Blind Test)</div>
+                <div class="step" id="step-6">6. Tạo giải thích</div>
+            </div>
+        </div>
+
+        <!-- Kết quả -->
+        <div id="quiz-container" class="hidden">
+            <!-- Câu hỏi sẽ được render vào đây -->
+        </div>
+
+        <!-- Nút nộp bài / Xuất file / Google Form -->
+        <div id="action-bar" class="hidden">
+            <button id="submit-quiz-btn" class="primary-btn">
+                <i class="fas fa-check-circle"></i> Hoàn thành bài thi
+            </button>
+            <button id="export-pdf-btn" class="secondary-btn hidden">
+                <i class="fas fa-file-pdf"></i> Xuất File PDF
+            </button>
+            
+            <div style="display: flex; gap: 10px; margin-left: 20px; align-items: center; border-left: 2px solid #eee; padding-left: 20px;">
+                <button id="create-form-btn" class="google-btn">
+                    <i class="fab fa-google-drive"></i> Đăng nhập & Tạo Google Form
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal xác nhận xuất file -->
+    <div id="export-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Tùy chọn xuất file</h3>
+            <p>Bạn có muốn xuất file kèm lời giải thích chi tiết không?</p>
+            <div class="modal-actions">
+                <button id="export-yes">Có, kèm giải thích</button>
+                <button id="export-no">Không, chỉ đáp án</button>
+                <button id="export-cancel" class="cancel">Hủy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="quiz-script.js"></script>
+</body>
+</html>

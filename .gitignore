@@ -1,0 +1,11 @@
+# Chặn file môi trường
+.env
+.env.local
+env.js
+
+# Chặn thư mục thư viện (rất nặng, không nên up)
+node_modules/
+
+# Chặn các file rác của hệ điều hành
+.DS_Store
+Thumbs.db

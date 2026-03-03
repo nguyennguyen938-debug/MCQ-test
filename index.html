@@ -23,6 +23,9 @@
         <header>
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h1><i class="fas fa-brain"></i> Hệ Thống Tạo Trắc Nghiệm AI</h1>
+                <button id="config-btn" class="secondary-btn" style="padding: 5px 10px; font-size: 0.9em;">
+                    <i class="fas fa-cog"></i> Cấu hình API
+                </button>
             </div>
             <p>Tạo bộ câu hỏi chuẩn Bloom, kiểm tra độ nhiễu và phân tích IRT</p>
         </header>
@@ -187,8 +190,48 @@
         </div>
     </div>
 
+    <!-- Modal Cấu hình API -->
+    <div id="config-modal" class="modal hidden">
+        <div class="modal-content" style="width: 500px; max-width: 95%;">
+            <h3><i class="fas fa-key"></i> Cấu hình API</h3>
+            <p>Nhập API Key của bạn để sử dụng hệ thống. Dữ liệu sẽ được lưu vào trình duyệt của bạn.</p>
+            
+            <div class="form-group">
+                <label>Gemini Flash Key (Tùy chọn nếu dùng Google Login):</label>
+                <input type="password" id="cfg-gemini-flash" placeholder="AIzaSy..." style="width: 100%; padding: 8px;">
+            </div>
+
+            <div class="form-group">
+                <label>Gemini Blind Key (Tùy chọn nếu dùng Google Login):</label>
+                <input type="password" id="cfg-gemini-blind" placeholder="AIzaSy..." style="width: 100%; padding: 8px;">
+            </div>
+
+            <div class="form-group">
+                <label>GPT-5 Token (GitHub/Azure):</label>
+                <input type="password" id="cfg-gpt5" placeholder="github_pat_..." style="width: 100%; padding: 8px;">
+            </div>
+
+            <div class="form-group">
+                <label>Grok Token (GitHub/Azure):</label>
+                <input type="password" id="cfg-grok" placeholder="github_pat_..." style="width: 100%; padding: 8px;">
+            </div>
+
+            <div class="form-group">
+                <label>Google Client ID (Cho OAuth & Forms):</label>
+                <input type="text" id="cfg-client-id" placeholder="...apps.googleusercontent.com" style="width: 100%; padding: 8px;">
+            </div>
+
+            <div class="modal-actions" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="cfg-save-btn" class="primary-btn">Lưu Cấu Hình</button>
+                <button id="cfg-cancel-btn" class="secondary-btn">Hủy</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Load Environment Variables -->
+    <script src="env.js"></script>
     <script src="quiz-script.js"></script>
 </body>
 </html>

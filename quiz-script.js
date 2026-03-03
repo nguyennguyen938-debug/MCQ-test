@@ -1,15 +1,13 @@
 
 // ==========================================
-// AI TOKENS (NHẬP TRỰC TIẾP TRONG CODE)
+// AI TOKENS (LOAD FROM ENV/LOCALSTORAGE)
 // ==========================================
-const GEMINI_FLASH_KEY = 'AIzaSyAPkzcRDTbf9ObZwnD4eFsTfNOIYmXIQsE'; // <-- Dán API Key Gemini 2.5 Flash (Tạo câu hỏi) của bạn vào đây
-const GEMINI_BLIND_KEY = 'AIzaSyByWRhB3S_9yolhnBoSYvZyja7wzop8NM8'; // <-- Dán API Key Gemini 2.5 Flash (Blind Test) của bạn vào đây
-const GPT5_TOKEN = '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'; // <-- Dán GitHub Token cho GPT-5 (sử dụng GPT-4o)
+const ENV = window.ENV || {};
 
-// ==========================================
-// NHẬP TOKEN CỦA BẠN TẠI ĐÂY
-// ==========================================
-const GROK_TOKEN = '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'; // <-- Dán GitHub Token (cho Grok 3) vào đây
+let GEMINI_FLASH_KEY = localStorage.getItem('GEMINI_FLASH_KEY') || ENV.GEMINI_FLASH_KEY || '';
+let GEMINI_BLIND_KEY = localStorage.getItem('GEMINI_BLIND_KEY') || ENV.GEMINI_BLIND_KEY || '';
+let GPT5_TOKEN = localStorage.getItem('GPT5_TOKEN') || ENV.GPT5_TOKEN || '';
+let GROK_TOKEN = localStorage.getItem('GROK_TOKEN') || ENV.GROK_TOKEN || '';
 
 
 
@@ -56,8 +54,51 @@ document.addEventListener('DOMContentLoaded', () => {
     // Replace this with your actual Google Client ID from Google Cloud Console
     // Must enable Google Forms API and Google Drive API
     // Correct format: "YOUR_CLIENT_ID.apps.googleusercontent.com"
-    // The previous ID had a double suffix ".apps.googleusercontent.com.apps.googleusercontent.com" which caused Error 400
-    const GOOGLE_CLIENT_ID = '566854998127-dejfr00fuhurtvhm1lkjpaj2tcukg23h.apps.googleusercontent.com'; 
+    let GOOGLE_CLIENT_ID = localStorage.getItem('GOOGLE_CLIENT_ID') || ENV.GOOGLE_CLIENT_ID || '';
+    if (!GOOGLE_CLIENT_ID) {
+        console.warn("GOOGLE_CLIENT_ID is missing. Google Forms feature will not work.");
+    } 
+
+    // --- Config Modal Logic ---
+    const configBtn = document.getElementById('config-btn');
+    const configModal = document.getElementById('config-modal');
+    const cfgSaveBtn = document.getElementById('cfg-save-btn');
+    const cfgCancelBtn = document.getElementById('cfg-cancel-btn');
+
+    const cfgGeminiFlash = document.getElementById('cfg-gemini-flash');
+    const cfgGeminiBlind = document.getElementById('cfg-gemini-blind');
+    const cfgGpt5 = document.getElementById('cfg-gpt5');
+    const cfgGrok = document.getElementById('cfg-grok');
+    const cfgClientId = document.getElementById('cfg-client-id');
+
+    if (configBtn) {
+        configBtn.addEventListener('click', () => {
+            cfgGeminiFlash.value = localStorage.getItem('GEMINI_FLASH_KEY') || ENV.GEMINI_FLASH_KEY || '';
+            cfgGeminiBlind.value = localStorage.getItem('GEMINI_BLIND_KEY') || ENV.GEMINI_BLIND_KEY || '';
+            cfgGpt5.value = localStorage.getItem('GPT5_TOKEN') || ENV.GPT5_TOKEN || '';
+            cfgGrok.value = localStorage.getItem('GROK_TOKEN') || ENV.GROK_TOKEN || '';
+            cfgClientId.value = localStorage.getItem('GOOGLE_CLIENT_ID') || ENV.GOOGLE_CLIENT_ID || '';
+            configModal.classList.remove('hidden');
+        });
+    }
+
+    if (cfgSaveBtn) {
+        cfgSaveBtn.addEventListener('click', () => {
+            localStorage.setItem('GEMINI_FLASH_KEY', cfgGeminiFlash.value.trim());
+            localStorage.setItem('GEMINI_BLIND_KEY', cfgGeminiBlind.value.trim());
+            localStorage.setItem('GPT5_TOKEN', cfgGpt5.value.trim());
+            localStorage.setItem('GROK_TOKEN', cfgGrok.value.trim());
+            localStorage.setItem('GOOGLE_CLIENT_ID', cfgClientId.value.trim());
+            alert('Cấu hình đã được lưu! Trang sẽ tải lại để áp dụng thay đổi.');
+            location.reload();
+        });
+    }
+
+    if (cfgCancelBtn) {
+        cfgCancelBtn.addEventListener('click', () => {
+            configModal.classList.add('hidden');
+        });
+    } 
 
     // State
     let currentQuizData = [];
@@ -88,8 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(initGoogleAuth, 1000);
 
     createFormBtn.addEventListener('click', () => {
-        if (GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
-            alert("Vui lòng cấu hình GOOGLE_CLIENT_ID trong file quiz-script.js để sử dụng tính năng này.");
+        if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
+            alert("Vui lòng cấu hình GOOGLE_CLIENT_ID (trong file env.js hoặc cấu hình trực tiếp) để sử dụng tính năng này.");
             return;
         }
 
